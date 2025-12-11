@@ -19,7 +19,7 @@ public class Certificacion {
 		this.descripcion = descripcion;
 		this.creditos = creditos;
 		this.validez = validez;
-		asigCerts = asigCerts;
+		this.asigCerts = asigCerts;
 	}
 
 
