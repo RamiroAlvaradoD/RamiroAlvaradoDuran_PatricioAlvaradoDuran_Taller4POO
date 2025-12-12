@@ -31,10 +31,13 @@ public class UsuarioFactoryImpl implements UsuarioFactory {
 		
 		switch(rol) {
 		
-		case "Administrador":
-			return crearAdministrador(username, password);
+		case "administrador":
+        case "Admin":
+            return crearAdministrador(username, password);
+
 			
-		case "Coordinador":
+        case "Coordinador":
+        case "coord":
 			String area = datos[3];
 			return crearCoordinador(username, password, area);
 			

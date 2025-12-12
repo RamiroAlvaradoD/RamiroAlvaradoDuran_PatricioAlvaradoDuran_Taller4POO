@@ -1,6 +1,12 @@
 package dominio;
+//Ramiro Alvarado Durán - RUT 19.428.146-3 - ITI
+//Patricio Alvarado Durán - RUT 20.955.249-3 - ITI
+//Taller 4 - Programación Orientada a Objetos
+//Universidad Católica del Norte
 
 import java.util.ArrayList;
+
+import visitor.CertificacionVisitor;
 
 public class Certificacion {
 	
@@ -80,6 +86,10 @@ public class Certificacion {
 
 	public ArrayList<String> getAsigCerts() {
 		return asigCerts;
+	}
+	
+	public void aceptar(CertificacionVisitor v) {
+	    v.visitar(this);
 	}
 	
 	

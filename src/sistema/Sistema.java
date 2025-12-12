@@ -1,10 +1,17 @@
 package sistema;
+//Ramiro Alvarado Durán - RUT 19.428.146-3 - ITI
+//Patricio Alvarado Durán - RUT 20.955.249-3 - ITI
+//Taller 4 - Programación Orientada a Objetos
+//Universidad Católica del Norte
 
 import dominio.*;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Scanner;
+
+import javax.swing.JTextArea;
+
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -304,6 +311,11 @@ public class Sistema {
 		
 	}
 	
+	public ArrayList<Estudiante> getEstudiantesLista() {
+	    return estudiantes;
+	}
+
+	
 	
 	//crear usuario coordinador
 	
@@ -547,113 +559,578 @@ public class Sistema {
 		}
 	}
 	
-	public void modificarCertificacion(String idBuscado, Scanner sc) {
-		
-		Certificacion objetivo = null;
-		
-		for (Certificacion c : certificaciones) {
-			if (c.getId().equals(idBuscado)) {
-				objetivo = c;
-				break;
-			}
-		}
-		
-		if (objetivo == null) {
-			System.out.println("No se encontró una certificación con ese ID.");
-			return;
-		}
-		
-		System.out.print("Nuevo nombre: ");
-		String nombre = sc.nextLine();
-		
-		System.out.print("Nueva descripcion: ");
-		String descripcion = sc.nextLine();
-		
-		System.out.print("Nueva validez: ");
-		int validez = Integer.parseInt(sc.nextLine());
-		
-		System.out.print("Nuevos créditos: ");
-		int creditos = Integer.parseInt(sc.nextLine());
-		
-//		objetivo.setNombre(nombre);
-//		objetivo.setDescripcion(descripcion);
-//		objetivo.setValidez(validez);
-//		objetivo.setCreditos(creditos);
-		
-		guardarCertificaciones();
-		
-		System.out.println("Certificación modificada exitosamente.");
+	public void modificarCertificacion(String id, String nombre, String descripcion, int validez, int creditos) {
+
+	    Certificacion objetivo = null;
+
+	    for (Certificacion c : certificaciones) {
+	        if (c.getId().equals(id)) {
+	            objetivo = c;
+	            break;
+	        }
+	    }
+
+	    if (objetivo == null) {
+	        System.out.println("No se encontró certificación.");
+	        return;
+	    }
+
+	    objetivo.setNombre(nombre);
+	    objetivo.setDescripcion(descripcion);
+	    objetivo.setValidez(validez);
+	    objetivo.setCreditos(creditos);
+
+	    guardarCertificaciones();
+	}
+
+	
+	public void generarCertificados(String idCertificacion, JTextArea area) {
+
+	    Certificacion cert = null;
+
+	    for (Certificacion c : certificaciones) {
+	        if (c.getId().equals(idCertificacion)) {
+	            cert = c;
+	            break;
+	        }
+	    }
+
+	    if (cert == null) {
+	        area.append("Certificación no encontrada.\n");
+	        return;
+	    }
+
+	    for (RegistroCertificacion rc : registros) {
+	        if (rc.getId().equals(idCertificacion)) {
+
+	            Estudiante est = null;
+	            for (Estudiante e : estudiantes) {
+	                if (e.getRut().equals(rc.getRut())) {
+	                    est = e;
+	                    break;
+	                }
+	            }
+
+	            if (est == null) continue;
+
+	            int progreso = calcularProgresoCertificacion(est, cert);
+
+	            if (progreso == 100) {
+	                area.append("\n--- CERTIFICADO ---\n");
+	                area.append("Estudiante: " + est.getNombre() + " (" + est.getRut() + ")\n");
+	                area.append("Certificación: " + cert.getNombre() + "\n");
+	                area.append("Fecha: " + java.time.LocalDate.now() + "\n");
+	            }
+	        }
+	    }
+	}
+
+	
+	public void mostrarAsignaturasPendientes(String rutBuscado) {
+
+	    Estudiante est = null;
+
+	    for (Estudiante e : estudiantes) {
+	        if (e.getRut().equals(rutBuscado)) {
+	            est = e;
+	            break;
+	        }
+	    }
+
+	    if (est == null) {
+	        System.out.println("Estudiante no encontrado.");
+	        return;
+	    }
+
+	    System.out.println("=== ASIGNATURAS PENDIENTES ===");
+
+	    for (RegistroCertificacion rc : registros) {
+	        if (rc.getRut().equals(rutBuscado)) {
+
+	            Certificacion cert = null;
+
+	            for (Certificacion c : certificaciones) {
+	                if (c.getId().equals(rc.getId())) {
+	                    cert = c;
+	                    break;
+	                }
+	            }
+
+	            if (cert == null) continue;
+
+	            System.out.println(cert.getId() + " - " + cert.getNombre() + ":");
+
+	            for (String nrc : cert.getAsigCerts()) {
+
+	                boolean aprobada = false;
+
+	                for (Nota n : notas) {
+	                    if (n.getRut().equals(rutBuscado) &&
+	                        n.getCodigo().equals(nrc) &&
+	                        n.getEstado().equalsIgnoreCase("Aprobado")) {
+	                        aprobada = true;
+	                        break;
+	                    }
+	                }
+
+	                if (!aprobada) {
+
+	                    Curso curso = null;
+
+	                    for (Curso c : cursos) {
+	                        if (c.getNrc().equals(nrc)) {
+	                            curso = c;
+	                            break;
+	                        }
+	                    }
+
+	                    if (curso != null) {
+	                        System.out.println(" - " + curso.getNrc() + " " + curso.getNombre());
+	                    } else {
+	                        System.out.println(" - " + nrc);
+	                    }
+	                }
+	            }
+
+	            System.out.println();
+	        }
+	    }
+	}
+
+	public Object login(String username, String password) {
+
+	    // 1. Buscar en usuarios.txt → Admin y Coordinador
+	    for (Usuario u : usuarios) {
+	        if (u.getUsername().equals(username) &&
+	            u.getPassword().equals(password)) {
+	            return u;  // Devuelve Usuario
+	        }
+	    }
+
+	    // 2. Buscar en estudiantes.txt → Estudiantes
+	    for (Estudiante e : estudiantes) {
+	        // Login con correo
+	        if (e.getCorreo().equals(username) &&
+	            e.getPassword().equals(password)) {
+	            return e;  // Devuelve Estudiante
+	        }
+	    }
+
+	    return null; // No existe
+	}
+
+	
+	public String estadoCurso(String rut, String nrc) {
+
+	    for (Nota n : notas) {
+	        if (n.getRut().equals(rut) && n.getCodigo().equals(nrc)) {
+	            return n.getEstado();   // "Aprobado", "Reprobado", "Cursando"
+	        }
+	    }
+
+	    return "No cursado";
 	}
 	
-	public void generarCertificados(String idCertificacion) {
-		Certificacion cert = null;
-		
-		for (Certificacion c : certificaciones) {
-			if (c.getId().equals(idCertificacion)) {
-				cert = c;
-				break;
-			}
-		}
-		
-		if (cert == null) {
-			System.out.println("Certificacion no encontrada");
-			return;
-		}
-		
-		for (RegistroCertificacion rc : registros) {
-			if (rc.getId().equals(idCertificacion)) {
-				Estudiante est = null;
-				
-				for (Estudiante e : estudiantes) {
-					if (e.getRut().equals(rc.getRut())) {
-						est = e;
-						break;
-					}
-				}
-				
-				if (est == null) continue; {
-					int progreso = calcularProgresoCertificacion(est,cert);
-					
-					if (progreso == 100) {
-						System.out.println("===================================");
-						System.out.println("     CERTIFICADO DE COMPLECIÓN     ");
-						System.out.println("===================================");
-						System.out.println("Estudiante: " + est.getNombre() + "  (" + est.getRut() + ")");
-						System.out.println("Certificación : " + cert.getNombre());
-						System.out.println("Estado : COMPLETADA");
-						System.out.println("Fecha: " + java.time.LocalDate.now());
-						System.out.println("===================================");
-						System.out.println();
-					}
-				}
-			}
-		}
-		
-		
+	public ArrayList<Curso> getCursos() {
+	    return cursos;
+	}
+	
+	public void mostrarInformacionPersonal(String rut) {
+
+	    Estudiante est = null;
+
+	    for (Estudiante e : estudiantes) {
+	        if (e.getRut().equals(rut)) {
+	            est = e;
+	            break;
+	        }
+	    }
+
+	    if (est == null) {
+	        System.out.println("Estudiante no encontrado.");
+	        return;
+	    }
+
+	    System.out.println("=== INFORMACIÓN PERSONAL ===");
+	    System.out.println("Nombre: " + est.getNombre());
+	    System.out.println("RUT: " + est.getRut());
+	    System.out.println("Carrera: " + est.getCarrera());
+	    System.out.println("Semestre: " + est.getSemestre());
+	    System.out.println("Correo: " + est.getCorreo());
 	}
 
+	public void mostrarPromedios(String rut) {
+
+	    double sumaGeneral = 0;
+	    int contadorGeneral = 0;
+
+	    // Para almacenar semestres únicos
+	    ArrayList<String> semestres = new ArrayList<>();
+
+	    // Primero: encontrar todos los semestres donde el estudiante tiene notas aprobadas
+	    for (Nota n : notas) {
+	        if (n.getRut().equals(rut) && n.getEstado().equalsIgnoreCase("Aprobado")) {
+	            if (!semestres.contains(n.getSemestre())) {
+	                semestres.add(n.getSemestre());
+	            }
+
+	            sumaGeneral += n.getCalificacion();
+	            contadorGeneral++;
+	        }
+	    }
+
+	    if (contadorGeneral == 0) {
+	        System.out.println("No hay notas aprobadas.");
+	        return;
+	    }
+
+	    System.out.println("=== PROMEDIOS ===");
+	    System.out.println("Promedio general: " + (sumaGeneral / contadorGeneral));
+	    System.out.println();
+	    System.out.println("Promedio por semestre:");
+
+	    // Segundo: para cada semestre, calcular su propio promedio
+	    for (String sem : semestres) {
+
+	        double suma = 0;
+	        int contador = 0;
+
+	        for (Nota n : notas) {
+	            if (n.getRut().equals(rut)
+	                && n.getEstado().equalsIgnoreCase("Aprobado")
+	                && n.getSemestre().equals(sem)) {
+
+	                suma += n.getCalificacion();
+	                contador++;
+	            }
+	        }
+
+	        System.out.println("Semestre " + sem + ": " + (suma / contador));
+	    }
+	}
+
+
+
+	public void listarCertificaciones() {
+	    System.out.println("=== CERTIFICACIONES DISPONIBLES ===");
+	    for (Certificacion c : certificaciones) {
+	        System.out.println(c.getId() + " - " + c.getNombre());
+	    }
+	}
+	
+	public void mostrarDetalleCertificacion(String id) {
+
+	    Certificacion cert = null;
+
+	    for (Certificacion c : certificaciones) {
+	        if (c.getId().equals(id)) {
+	            cert = c;
+	            break;
+	        }
+	    }
+
+	    if (cert == null) {
+	        System.out.println("Certificación no encontrada.");
+	        return;
+	    }
+
+	    System.out.println("=== DETALLE CERTIFICACIÓN ===");
+	    System.out.println("ID: " + cert.getId());
+	    System.out.println("Nombre: " + cert.getNombre());
+	    System.out.println("Descripción: " + cert.getDescripcion());
+	    System.out.println("Créditos: " + cert.getCreditos());
+	    System.out.println("Validez: " + cert.getValidez());
+	    System.out.println("Asignaturas requeridas: " + cert.getAsigCerts());
+	}
+
+
+	public boolean cumpleRequisitos(String rut, String idCert) {
+
+	    Certificacion cert = null;
+
+	    for (Certificacion c : certificaciones) {
+	        if (c.getId().equals(idCert)) {
+	            cert = c;
+	            break;
+	        }
+	    }
+
+	    if (cert == null) return false;
+
+	    for (String nrc : cert.getAsigCerts()) {
+
+	        boolean aprobado = false;
+
+	        for (Nota n : notas) {
+	            if (n.getRut().equals(rut)
+	             && n.getCodigo().equals(nrc)
+	             && n.getEstado().equalsIgnoreCase("Aprobado")) {
+	                aprobado = true;
+	                break;
+	            }
+	        }
+
+	        if (!aprobado) return false;
+	    }
+
+	    return true;
+	}
+	
+	public void inscribirCertificacion(String rut, String idCert) {
+
+	    Estudiante est = null;
+
+	    for (Estudiante e : estudiantes) {
+	        if (e.getRut().equals(rut)) {
+	            est = e;
+	            break;
+	        }
+	    }
+
+	    if (est == null) {
+	        System.out.println("Estudiante no existe.");
+	        return;
+	    }
+
+	    // verificar si ya está inscrito
+	    for (RegistroCertificacion rc : registros) {
+	        if (rc.getRut().equals(rut) && rc.getId().equals(idCert)) {
+	            System.out.println("El estudiante ya está inscrito en esta certificación.");
+	            return;
+	        }
+	    }
+
+	    // verificar requisitos
+	    if (!cumpleRequisitos(rut, idCert)) {
+	        System.out.println("No cumple los prerrequisitos.");
+	        return;
+	    }
+
+	    RegistroCertificacion nuevo =
+	        new RegistroCertificacion(rut, idCert,
+	            java.time.LocalDate.now().toString(), "En progreso", 0);
+
+	    registros.add(nuevo);
+
+	    System.out.println("Inscripción realizada con éxito.");
+	}
+	
+	public void estadisticasInscripcion(String idCert, JTextArea area) {
+
+	    int total = 0;
+
+	    for (RegistroCertificacion rc : registros) {
+	        if (rc.getId().equals(idCert)) {
+	            total++;
+	        }
+	    }
+
+	    area.append("Estudiantes inscritos en " + idCert + ": " + total + "\n");
+	}
+
+	
+	public void mostrarDashboardProgreso(String rut) {
+
+	    Estudiante est = null;
+
+	    for (Estudiante e : estudiantes) {
+	        if (e.getRut().equals(rut)) {
+	            est = e;
+	            break;
+	        }
+	    }
+
+	    if (est == null) {
+	        System.out.println("Estudiante no encontrado.");
+	        return;
+	    }
+
+	    System.out.println("=== DASHBOARD DE PROGRESO ===");
+
+	    for (RegistroCertificacion rc : registros) {
+	        if (rc.getRut().equals(rut)) {
+
+	            Certificacion cert = null;
+
+	            for (Certificacion c : certificaciones) {
+	                if (c.getId().equals(rc.getId())) {
+	                    cert = c;
+	                    break;
+	                }
+	            }
+
+	            if (cert == null) continue;
+
+	            int p = calcularProgresoCertificacion(est, cert);
+
+	            System.out.println(cert.getNombre() + ": " + p + "%");
+
+	            if (p == 100) System.out.println("Estado: COMPLETADA\n");
+	            else System.out.println("Estado: En progreso\n");
+	        }
+	    }
+	}
+	
+	public void aplicarAccionesVisitor(String rut) {
+
+	    Estudiante est = null;
+
+	    for (Estudiante e : estudiantes) {
+	        if (e.getRut().equals(rut)) {
+	            est = e;
+	            break;
+	        }
+	    }
+
+	    if (est == null) {
+	        System.out.println("Estudiante no encontrado.");
+	        return;
+	    }
+
+	    for (RegistroCertificacion rc : registros) {
+	        if (rc.getRut().equals(rut)) {
+
+	            Certificacion cert = null;
+
+	            for (Certificacion c : certificaciones) {
+	                if (c.getId().equals(rc.getId())) {
+	                    cert = c;
+	                    break;
+	                }
+	            }
+
+	            if (cert == null) continue;
+
+	            int progreso = calcularProgresoCertificacion(est, cert);
+
+	            System.out.println("Certificación: " + cert.getNombre());
+
+	            cert.aceptar(new visitor.RecomendacionVisitor());
+	            cert.aceptar(new visitor.AdvertenciaVisitor(progreso));
+
+	            System.out.println();
+	        }
+	    }
+	}
+	
+	public void analizarAsignaturasCriticas(String idCert, JTextArea area) {
+
+	    Certificacion cert = null;
+
+	    for (Certificacion c : certificaciones) {
+	        if (c.getId().equals(idCert)) {
+	            cert = c;
+	            break;
+	        }
+	    }
+
+	    if (cert == null) {
+	        area.append("Certificación no encontrada.\n");
+	        return;
+	    }
+
+	    String peor = "";
+	    int maxReprobados = 0;
+
+	    for (String nrc : cert.getAsigCerts()) {
+
+	        int reprobados = 0;
+
+	        for (Nota n : notas) {
+	            if (n.getCodigo().equals(nrc)
+	             && n.getEstado().equalsIgnoreCase("Reprobado")) {
+	                reprobados++;
+	            }
+	        }
+
+	        if (reprobados > maxReprobados) {
+	            maxReprobados = reprobados;
+	            peor = nrc;
+	        }
+	    }
+
+	    if (maxReprobados == 0) {
+	        area.append("No hay asignaturas críticas.\n");
+	    } else {
+	        area.append("Asignatura crítica: " + peor + 
+	                    " con " + maxReprobados + " reprobaciones.\n");
+	    }
+	}
+	
+	public void mostrarPerfilEstudiante(String rut, JTextArea area) {
+
+	    Estudiante est = null;
+
+	    for (Estudiante e : estudiantes) {
+	        if (e.getRut().equals(rut)) {
+	            est = e;
+	            break;
+	        }
+	    }
+
+	    if (est == null) {
+	        area.append("Estudiante no encontrado.\n");
+	        return;
+	    }
+
+	    area.append("\n=== PERFIL DEL ESTUDIANTE ===\n");
+	    area.append("Nombre: " + est.getNombre() + "\n");
+	    area.append("RUT: " + est.getRut() + "\n");
+	    area.append("Carrera: " + est.getCarrera() + "\n");
+	    area.append("Semestre: " + est.getSemestre() + "\n");
+	    area.append("Correo: " + est.getCorreo() + "\n\n");
+
+	    area.append("Notas:\n");
+
+	    for (Nota n : notas) {
+	        if (n.getRut().equals(rut)) {
+	            area.append(n.getCodigo() + " - " + 
+	            n.getCalificacion() + " (" + n.getEstado() + ")\n");
+	        }
+	    }
+	}
+	
+	public void validarAvance(String rut, String idCert, JTextArea area) {
+
+	    Estudiante est = null;
+
+	    for (Estudiante e : estudiantes) {
+	        if (e.getRut().equals(rut)) {
+	            est = e;
+	            break;
+	        }
+	    }
+
+	    if (est == null) {
+	        area.append("Estudiante no encontrado.\n");
+	        return;
+	    }
+
+	    Certificacion cert = null;
+
+	    for (Certificacion c : certificaciones) {
+	        if (c.getId().equals(idCert)) {
+	            cert = c;
+	            break;
+	        }
+	    }
+
+	    if (cert == null) {
+	        area.append("Certificación no encontrada.\n");
+	        return;
+	    }
+
+	    int p = calcularProgresoCertificacion(est, cert);
+
+	    area.append("\n=== VALIDACIÓN DE AVANCE ===\n");
+	    area.append("Estudiante: " + est.getNombre() + "\n");
+	    area.append("Certificación: " + cert.getNombre() + "\n");
+	    area.append("Progreso: " + p + "%\n");
+
+	    area.append(p == 100 ? "Estado: COMPLETADA\n" : "Estado: En progreso\n");
+	}
+
+
+
+	
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
