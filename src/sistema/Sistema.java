@@ -4,7 +4,12 @@ import dominio.*;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Scanner;
+
+import javax.imageio.spi.RegisterableService;
+
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -722,6 +727,461 @@ public class Sistema {
 			System.out.println("Nombre: "+cursoCritico.getNombre());
 		System.out.println("Tasa de reprobación: "+peorPorcentaje + "%");
 		System.out.println();
+	}
+	
+	public void mostrarPerfilEstudiante(String rutBuscado) {
+		Estudiante est = null;
+		
+		for (Estudiante e : estudiantes) {
+			if (e.getRut().equals(rutBuscado));{
+				est = e;
+				break;
+				
+			}
+		}
+		if (est == null) {
+			System.out.println("Estudiante no encontrado.");
+			return;
+		}
+		
+		System.out.println("=== PERFIL DEL ESTUDIANTE ===");
+		System.out.println("RUT: " + est.getRut() );
+		System.out.println("Nombre: "+est.getNombre());
+		System.out.println("Carrera: " + est.getCarrera());
+		System.out.println("Semestre: " + est.getSemestre());
+		System.out.println("Correo: " + est.getCorreo());
+		System.out.println();
+		
+		System.out.println("--- Certificaciones Inscritas ---");
+		
+		for (RegistroCertificacion rc : registros) {
+			if (rc.getRut().equals(est.getRut())) {
+				
+				Certificacion cert = null;
+				
+				for (Certificacion c : certificaciones) {
+					if (c.getId().equals(rc.getId())) {
+						cert = c;
+						break;
+						
+					}
+				}
+				if (cert == null) {
+					int progreso = calcularProgresoCertificacion(est, cert);
+					System.out.println(cert.getId() + " - " + cert.getNombre());
+					System.out.println("Progreso: " + progreso + "%");
+					System.out.println();
+				}
+			}
+		}
+		
+		System.out.println("--- Cursos y Notas ---");
+		
+		for (Nota n : notas) {
+			if (n.getRut().equals(est.getRut())) {
+				Curso curso = null;
+				
+				for (Curso c : cursos) {
+					if (c.getNrc().equals(n.getCodigo())) {
+						curso = c;
+						break;
+					}
+				}
+				if (curso != null) {
+					String estado = n.isEstado() ? "Aprobado" : "Reprobado";
+					System.out.println(curso.getNrc() + " - " + curso.getNombre()
+							+ " - Nota: " + n.getCalificacion()
+							+ " - Estado: " + estado
+							+ " - Semestre: " + n.getSemestre());
+				}
+			}
+		}
+		
+		System.out.println();
+	}
+	
+	public void validarAvance(String rutBuscado, String idCertificacion) {
+		Estudiante est = null;
+
+	    for (Estudiante e : estudiantes) {
+	        if (e.getRut().equals(rutBuscado)) {
+	            est = e;
+	            break;
+	        }
+	    }
+
+	    if (est == null) {
+	        System.out.println("Estudiante no encontrado.");
+	        return;
+	    }
+
+	    Certificacion cert = null;
+
+	    for (Certificacion c : certificaciones) {
+	        if (c.getId().equals(idCertificacion)) {
+	            cert = c;
+	            break;
+	        }
+	    }
+
+	    if (cert == null) {
+	        System.out.println("Certificación no encontrada.");
+	        return;
+	    }
+
+	    int progreso = calcularProgresoCertificacion(est, cert);
+
+	    if (progreso == 100) {
+
+	        for (RegistroCertificacion rc : registros) {
+	            if (rc.getRut().equals(rutBuscado) && rc.getId().equals(idCertificacion)) {
+	                rc.setEstado("Completada");
+	                rc.setProgreso(100);
+	                break;
+	            }
+	        }
+
+	        System.out.println("El estudiante ha completado la certificación.");
+	    } 
+	    else {
+	        System.out.println("El estudiante no ha completado la certificación. Progreso: " + progreso + "%");
+	    }
+	}
+	
+	public void mostrarInformacionPersonal(String rutBuscado) {
+
+	    Estudiante est = null;
+
+	    for (Estudiante e : estudiantes) {
+	        if (e.getRut().equals(rutBuscado)) {
+	            est = e;
+	            break;
+	        }
+	    }
+
+	    if (est == null) {
+	        System.out.println("Estudiante no encontrado.");
+	        return;
+	    }
+
+	    System.out.println("=== INFORMACIÓN PERSONAL ===");
+	    System.out.println("RUT: " + est.getRut());
+	    System.out.println("Nombre: " + est.getNombre());
+	    System.out.println("Carrera: " + est.getCarrera());
+	    System.out.println("Semestre: " + est.getSemestre());
+	    System.out.println("Correo: " + est.getCorreo());
+	    System.out.println();
+	}
+	
+	public void mostrarMallaCurricular(String rutBuscado) {
+
+	    Map<Integer, ArrayList<String>> semestres = new LinkedHashMap<>();
+
+	    for (Curso c : cursos) {
+	        int sem = c.getSemestre();
+	        if (!semestres.containsKey(sem)) {
+	            semestres.put(sem, new ArrayList<>());
+	        }
+
+	        String estado = "Pendiente";
+
+	        for (Nota n : notas) {
+	            if (n.getRut().equals(rutBuscado) && n.getCodigo().equals(c.getNrc())) {
+	                estado = n.isEstado() ? "Aprobado" : "Reprobado";
+	                break;
+	            }
+	        }
+
+	        String linea = c.getNrc() + " - " + c.getNombre() + " (" + estado + ")";
+	        semestres.get(sem).add(linea);
+	    }
+
+	    System.out.println("=== MALLA CURRICULAR ===");
+
+	    for (Integer sem : semestres.keySet()) {
+	        System.out.println("Semestre " + sem + ":");
+
+	        for (String s : semestres.get(sem)) {
+	            System.out.println(" - " + s);
+	        }
+
+	        System.out.println();
+	    }
+	}
+	
+	public void mostrarPromedios(String rutBuscado) {
+
+	    double sumaGeneral = 0;
+	    int cantidadGeneral = 0;
+
+	    Map<String, ArrayList<Double>> porSemestre = new LinkedHashMap<>();
+
+	    for (Nota n : notas) {
+	        if (n.getRut().equals(rutBuscado)) {
+
+	            sumaGeneral += n.getCalificacion();
+	            cantidadGeneral++;
+
+	            String sem = n.getSemestre();
+
+	            if (!porSemestre.containsKey(sem)) {
+	                porSemestre.put(sem, new ArrayList<>());
+	            }
+
+	            porSemestre.get(sem).add(n.getCalificacion());
+	        }
+	    }
+
+	    if (cantidadGeneral == 0) {
+	        System.out.println("No hay notas registradas.");
+	        return;
+	    }
+
+	    double promedioGeneral = sumaGeneral / cantidadGeneral;
+
+	    System.out.println("=== PROMEDIOS DEL ESTUDIANTE ===");
+	    System.out.println("Promedio General: " + String.format("%.2f", promedioGeneral));
+	    System.out.println();
+
+	    System.out.println("Promedio por Semestre:");
+
+	    for (String sem : porSemestre.keySet()) {
+	        double suma = 0;
+	        int cant = porSemestre.get(sem).size();
+
+	        for (Double d : porSemestre.get(sem)) {
+	            suma += d;
+	        }
+
+	        double prom = suma / cant;
+
+	        System.out.println(sem + " → " + String.format("%.2f", prom));
+	    }
+
+	    System.out.println();
+	}
+	
+	public void listarCertificaciones() {
+
+	    System.out.println("=== CERTIFICACIONES DISPONIBLES ===");
+
+	    for (Certificacion c : certificaciones) {
+	        System.out.println(c.getId() + " - " + c.getNombre()
+	            + " | Créditos: " + c.getCreditos()
+	            + " | Validez: " + c.getValidez() + " meses");
+	    }
+
+	    System.out.println();
+	}
+	
+	public void mostrarDetalleCertificacion(String idCert) {
+
+	    Certificacion cert = null;
+
+	    for (Certificacion c : certificaciones) {
+	        if (c.getId().equals(idCert)) {
+	            cert = c;
+	            break;
+	        }
+	    }
+
+	    if (cert == null) {
+	        System.out.println("Certificación no encontrada.");
+	        return;
+	    }
+
+	    System.out.println("=== DETALLE DE CERTIFICACIÓN ===");
+	    System.out.println("ID: " + cert.getId());
+	    System.out.println("Nombre: " + cert.getNombre());
+	    System.out.println("Descripción: " + cert.getDescripcion());
+	    System.out.println("Créditos totales: " + cert.getCreditos());
+	    System.out.println("Validez: " + cert.getValidez() + " meses");
+	    System.out.println();
+	    System.out.println("Asignaturas requeridas:");
+
+	    for (String nrc : cert.getAsigCerts()) {
+	        Curso curso = null;
+
+	        for (Curso c : cursos) {
+	            if (c.getNrc().equals(nrc)) {
+	                curso = c;
+	                break;
+	            }
+	        }
+
+	        if (curso != null) {
+	            System.out.println(" - " + curso.getNrc() + " | " + curso.getNombre());
+	        } else {
+	            System.out.println(" - " + nrc + " (No existe el curso en cursos.txt)");
+	        }
+	    }
+
+	    System.out.println();
+	}
+	
+	public void inscribirCertificacion(String rut, String idCert) {
+		
+		if (!cumplePrerrequisitos(rut, idCert)) {
+	        return;
+	    }
+		
+	    Certificacion cert = null;
+
+	    for (Certificacion c : certificaciones) {
+	        if (c.getId().equals(idCert)) {
+	            cert = c;
+	            break;
+	        }
+	    }
+
+	    if (cert == null) {
+	        System.out.println("Certificación no encontrada.");
+	        return;
+	    }
+
+	    for (RegistroCertificacion rc : registros) {
+	        if (rc.getRut().equals(rut) && rc.getId().equals(idCert)) {
+	            System.out.println("Ya estás inscrito en esta certificación.");
+	            return;
+	        }
+	    }
+
+	    String fecha = java.time.LocalDate.now().toString();
+
+	    RegistroCertificacion nuevo = new RegistroCertificacion(
+	            rut,
+	            idCert,
+	            fecha,
+	            "En progreso",
+	            0
+	    );
+
+	    registros.add(nuevo);
+
+	    System.out.println("Inscripción exitosa en: " + cert.getNombre());
+	    System.out.println("Fecha: " + fecha);
+	    System.out.println();
+	}
+	
+	public boolean cumplePrerrequisitos(String rut, String idCert) {
+
+	    Certificacion cert = null;
+
+	    for (Certificacion c : certificaciones) {
+	        if (c.getId().equals(idCert)) {
+	            cert = c;
+	            break;
+	        }
+	    }
+
+	    if (cert == null) {
+	        System.out.println("Certificación no encontrada.");
+	        return false;
+	    }
+
+	    ArrayList<String> faltantes = new ArrayList<>();
+
+	    for (String nrcCurso : cert.getAsigCerts()) {
+
+	        Curso curso = null;
+
+	        for (Curso c : cursos) {
+	            if (c.getNrc().equals(nrcCurso)) {
+	                curso = c;
+	                break;
+	            }
+	        }
+
+	        if (curso == null) continue;
+
+	        for (String pre : curso.getPrerrequisitos()) {
+
+	            boolean aprobado = false;
+
+	            for (Nota n : notas) {
+	                if (n.getRut().equals(rut) &&
+	                    n.getCodigo().equals(pre) &&
+	                    n.isEstado()) {
+	                    aprobado = true;
+	                    break;
+	                }
+	            }
+
+	            if (!aprobado) {
+	                faltantes.add(pre);
+	            }
+	        }
+	    }
+
+	    if (faltantes.isEmpty()) {
+	        return true;
+	    }
+
+	    System.out.println("No cumple prerrequisitos. Faltan:");
+
+	    for (String f : faltantes) {
+	        System.out.println(" - " + f);
+	    }
+
+	    return false;
+	}
+	
+	public void mostrarDashboardProgreso(String rutBuscado) {
+
+	    Estudiante est = null;
+
+	    for (Estudiante e : estudiantes) {
+	        if (e.getRut().equals(rutBuscado)) {
+	            est = e;
+	            break;
+	        }
+	    }
+
+	    if (est == null) {
+	        System.out.println("Estudiante no encontrado.");
+	        return;
+	    }
+
+	    System.out.println("=== TU PROGRESO EN CERTIFICACIONES ===");
+
+	    for (RegistroCertificacion rc : registros) {
+	        if (rc.getRut().equals(rutBuscado)) {
+
+	            Certificacion cert = null;
+
+	            for (Certificacion c : certificaciones) {
+	                if (c.getId().equals(rc.getId())) {
+	                    cert = c;
+	                    break;
+	                }
+	            }
+
+	            if (cert == null) continue;
+
+	            int progreso = calcularProgresoCertificacion(est, cert);
+
+	            System.out.println(cert.getId() + " - " + cert.getNombre());
+	            System.out.println("Progreso: " + progreso + "%");
+
+	            String estado = (progreso == 100 ? "Completada" : "En progreso");
+	            System.out.println("Estado: " + estado);
+	            System.out.println();
+	        }
+	    }
+	}
+	
+	public void aplicarVisitor(String rut, CertificacionVisitor v) {
+
+	    for (RegistroCertificacion rc : registros) {
+	        if (rc.getRut().equals(rut)) {
+
+	            for (Certificacion c : certificaciones) {
+	                if (c.getId().equals(rc.getId())) {
+	                    c.accept(v);
+	                }
+	            }
+	        }
+	    }
 	}
 }
 
