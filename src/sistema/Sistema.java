@@ -1002,6 +1002,171 @@ public class Sistema {
 
 	    System.out.println();
 	}
+	
+	public void inscribirCertificacion(String rut, String idCert) {
+		
+		if (!cumplePrerrequisitos(rut, idCert)) {
+	        return;
+	    }
+		
+	    Certificacion cert = null;
+
+	    for (Certificacion c : certificaciones) {
+	        if (c.getId().equals(idCert)) {
+	            cert = c;
+	            break;
+	        }
+	    }
+
+	    if (cert == null) {
+	        System.out.println("Certificación no encontrada.");
+	        return;
+	    }
+
+	    for (RegistroCertificacion rc : registros) {
+	        if (rc.getRut().equals(rut) && rc.getId().equals(idCert)) {
+	            System.out.println("Ya estás inscrito en esta certificación.");
+	            return;
+	        }
+	    }
+
+	    String fecha = java.time.LocalDate.now().toString();
+
+	    RegistroCertificacion nuevo = new RegistroCertificacion(
+	            rut,
+	            idCert,
+	            fecha,
+	            "En progreso",
+	            0
+	    );
+
+	    registros.add(nuevo);
+
+	    System.out.println("Inscripción exitosa en: " + cert.getNombre());
+	    System.out.println("Fecha: " + fecha);
+	    System.out.println();
+	}
+	
+	public boolean cumplePrerrequisitos(String rut, String idCert) {
+
+	    Certificacion cert = null;
+
+	    for (Certificacion c : certificaciones) {
+	        if (c.getId().equals(idCert)) {
+	            cert = c;
+	            break;
+	        }
+	    }
+
+	    if (cert == null) {
+	        System.out.println("Certificación no encontrada.");
+	        return false;
+	    }
+
+	    ArrayList<String> faltantes = new ArrayList<>();
+
+	    for (String nrcCurso : cert.getAsigCerts()) {
+
+	        Curso curso = null;
+
+	        for (Curso c : cursos) {
+	            if (c.getNrc().equals(nrcCurso)) {
+	                curso = c;
+	                break;
+	            }
+	        }
+
+	        if (curso == null) continue;
+
+	        for (String pre : curso.getPrerrequisitos()) {
+
+	            boolean aprobado = false;
+
+	            for (Nota n : notas) {
+	                if (n.getRut().equals(rut) &&
+	                    n.getCodigo().equals(pre) &&
+	                    n.isEstado()) {
+	                    aprobado = true;
+	                    break;
+	                }
+	            }
+
+	            if (!aprobado) {
+	                faltantes.add(pre);
+	            }
+	        }
+	    }
+
+	    if (faltantes.isEmpty()) {
+	        return true;
+	    }
+
+	    System.out.println("No cumple prerrequisitos. Faltan:");
+
+	    for (String f : faltantes) {
+	        System.out.println(" - " + f);
+	    }
+
+	    return false;
+	}
+	
+	public void mostrarDashboardProgreso(String rutBuscado) {
+
+	    Estudiante est = null;
+
+	    for (Estudiante e : estudiantes) {
+	        if (e.getRut().equals(rutBuscado)) {
+	            est = e;
+	            break;
+	        }
+	    }
+
+	    if (est == null) {
+	        System.out.println("Estudiante no encontrado.");
+	        return;
+	    }
+
+	    System.out.println("=== TU PROGRESO EN CERTIFICACIONES ===");
+
+	    for (RegistroCertificacion rc : registros) {
+	        if (rc.getRut().equals(rutBuscado)) {
+
+	            Certificacion cert = null;
+
+	            for (Certificacion c : certificaciones) {
+	                if (c.getId().equals(rc.getId())) {
+	                    cert = c;
+	                    break;
+	                }
+	            }
+
+	            if (cert == null) continue;
+
+	            int progreso = calcularProgresoCertificacion(est, cert);
+
+	            System.out.println(cert.getId() + " - " + cert.getNombre());
+	            System.out.println("Progreso: " + progreso + "%");
+
+	            String estado = (progreso == 100 ? "Completada" : "En progreso");
+	            System.out.println("Estado: " + estado);
+	            System.out.println();
+	        }
+	    }
+	}
+	
+	public void aplicarVisitor(String rut, CertificacionVisitor v) {
+
+	    for (RegistroCertificacion rc : registros) {
+	        if (rc.getRut().equals(rut)) {
+
+	            for (Certificacion c : certificaciones) {
+	                if (c.getId().equals(rc.getId())) {
+	                    c.accept(v);
+	                }
+	            }
+	        }
+	    }
+	}
 }
 
 
