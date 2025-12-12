@@ -410,9 +410,54 @@ public class Sistema {
 
 	    System.out.println("Estudiante modificado con éxito.");
 	}
-
 	
+	public void eliminarCoordinador(String usernameBuscado) {
+		
+		Usuario objetivo = null;
+		
+		for (Usuario u :usuarios) {
+			if (u instanceof Coordinador && u.getUsername().equals(usernameBuscado)) {
+				objetivo = u;
+				break;
+			}
+		}
+		
+		if (objetivo == null) {
+			System.out.println("No se encontró un coordinador con ese username.");
+			return;
+		}
+		
+		
+		usuarios.remove(objetivo);
+		
+		
+		guardarUsuarios();
+		
+		System.out.println("Coordinador eliminado exitosamente");
+	}
 	
+	public void eliminarEstudiante(String rutBuscado) {
+		
+		Estudiante objetivo = null;
+		
+		for (Estudiante e : estudiantes) {
+			if (e.getRut().equals(rutBuscado)) {
+				objetivo = e;
+				break;
+			}
+		}
+		
+		if (objetivo == null) {
+			System.out.println("No se encontró un estudiante con ese RUT.");
+			return;
+		}
+		
+		estudiantes.remove(objetivo);
+		
+		guardarEstudiantes();
+		
+		System.out.println("Estudiante eliminado exitosamente.");
+	}
 	
 
 }
