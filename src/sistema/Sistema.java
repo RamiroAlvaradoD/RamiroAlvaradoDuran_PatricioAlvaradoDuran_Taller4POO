@@ -289,6 +289,61 @@ public class Sistema {
 	
 	//crear usuario coordinador
 	
+	public void crearCoordinador(String username, String password, String area) {
+		
+		Coordinador c = factory.crearCoordinador(username, password, area);
+		usuarios.add(c);
+		guardarUsuarios();
+		System.out.println("Coordinador creado con exito.");
+	}
+	
+	public void crearEstudiante(String rut, String nombre, String carrera, int semestre, String correo, String password) {
+		Estudiante e = factory.crearEstudiante(rut, nombre, carrera, semestre, correo, password);
+		estudiantes.add(e);
+		
+		guardarEstudiantes();
+		
+		System.out.println("Estudiante creado con exito.");
+	}
+	
+	public void crearCuenta(int tipo, Scanner sc) {
+		if (tipo == 1) {
+			System.out.println("RUT: ");
+			String rut = sc.nextLine();
+			
+			System.out.println("Nombre: ");
+			String nombre = sc.nextLine();
+			
+			System.out.println("Carrera: ");
+			String carrera = sc.nextLine();
+			
+			System.out.println("Semestre: ");
+			int semestre = Integer.parseInt(sc.nextLine());
+			
+			System.out.println("Correo: ");
+			String correo = sc.nextLine();
+			
+			System.out.println("Contraseña: ");
+			String password = sc.nextLine();
+			
+			crearEstudiante(rut, nombre, carrera, semestre, correo, password);
+		}
+		
+		else if (tipo == 2) {
+			
+			System.out.println("Nombre de usuario: ");
+			String username = sc.nextLine();
+			
+			System.out.println("Contraseña: ");
+			String password = sc.nextLine();
+			
+			System.out.println("Area: ");
+			String area = sc.nextLine();
+			
+			crearCoordinador(username, password, area);
+		}
+	}
+	
 	
 	
 
