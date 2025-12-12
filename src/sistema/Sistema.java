@@ -5,6 +5,9 @@ import dominio.*;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Scanner;
+
+import javax.imageio.spi.RegisterableService;
+
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -705,6 +708,77 @@ public class Sistema {
 		if (cursoCritico !=null)
 			System.out.println("Nombre: "+cursoCritico.getNombre());
 		System.out.println("Tasa de reprobación: "+peorPorcentaje + "%");
+		System.out.println();
+	}
+	
+	public void mostrarPerfilEstudiante(String rutBuscado) {
+		Estudiante est = null;
+		
+		for (Estudiante e : estudiantes) {
+			if (e.getRut().equals(rutBuscado));{
+				est = e;
+				break;
+				
+			}
+		}
+		if (est == null) {
+			System.out.println("Estudiante no encontrado.");
+			return;
+		}
+		
+		System.out.println("=== PERFIL DEL ESTUDIANTE ===");
+		System.out.println("RUT: " + est.getRut() );
+		System.out.println("Nombre: "+est.getNombre());
+		System.out.println("Carrera: " + est.getCarrera());
+		System.out.println("Semestre: " + est.getSemestre());
+		System.out.println("Correo: " + est.getCorreo());
+		System.out.println();
+		
+		System.out.println("--- Certificaciones Inscritas ---");
+		
+		for (RegistroCertificacion rc : registros) {
+			if (rc.getRut().equals(est.getRut())) {
+				
+				Certificacion cert = null;
+				
+				for (Certificacion c : certificaciones) {
+					if (c.getId().equals(rc.getId())) {
+						cert = c;
+						break;
+						
+					}
+				}
+				if (cert == null) {
+					int progreso = calcularProgresoCertificacion(est, cert);
+					System.out.println(cert.getId() + " - " + cert.getNombre());
+					System.out.println("Progreso: " + progreso + "%");
+					System.out.println();
+				}
+			}
+		}
+		
+		System.out.println("--- Cursos y Notas ---");
+		
+		for (Nota n : notas) {
+			if (n.getRut().equals(est.getRut())) {
+				Curso curso = null;
+				
+				for (Curso c : cursos) {
+					if (c.getNrc().equals(n.getCodigo())) {
+						curso = c;
+						break;
+					}
+				}
+				if (curso != null) {
+					String estado = n.isEstado() ? "Aprobado" : "Reprobado";
+					System.out.println(curso.getNrc() + " - " + curso.getNombre()
+							+ " - Nota: " + n.getCalificacion()
+							+ " - Estado: " + estado
+							+ " - Semestre: " + n.getSemestre());
+				}
+			}
+		}
+		
 		System.out.println();
 	}
 }
