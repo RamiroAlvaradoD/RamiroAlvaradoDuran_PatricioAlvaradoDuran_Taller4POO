@@ -33,6 +33,36 @@ public class Certificacion {
 	}
 
 
+	public void setId(String id) {
+		this.id = id;
+	}
+
+
+	public void setNombre(String nombre) {
+		this.nombre = nombre;
+	}
+
+
+	public void setDescripcion(String descripcion) {
+		this.descripcion = descripcion;
+	}
+
+
+	public void setCreditos(int creditos) {
+		this.creditos = creditos;
+	}
+
+
+	public void setValidez(int validez) {
+		this.validez = validez;
+	}
+
+
+	public void setAsigCerts(ArrayList<String> asigCerts) {
+		this.asigCerts = asigCerts;
+	}
+
+
 	public String getDescripcion() {
 		return descripcion;
 	}
