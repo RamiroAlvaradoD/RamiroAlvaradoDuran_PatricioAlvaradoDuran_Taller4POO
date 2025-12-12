@@ -14,4 +14,8 @@ public class Coordinador extends Usuario {
 		
 	}
 
+	public void setArea(String area) {
+		this.area = area;
+	}
+
 }

@@ -228,6 +228,8 @@ public class Sistema {
 				registros.add(rc);
 			}
 			
+			sc.close();
+			
 		} catch (FileNotFoundException e) {
 			System.out.println("Error al leer registros.txt");
 		}
@@ -343,6 +345,72 @@ public class Sistema {
 			crearCoordinador(username, password, area);
 		}
 	}
+	
+	public void modificarCoordinador (String usernameBuscado, Scanner sc) {
+		Coordinador objetivo = null;
+		
+		for (Usuario u: usuarios) {
+			if (u instanceof Coordinador && u.getUsername().equals(usernameBuscado)) {
+				objetivo = (Coordinador) u;
+				break;
+			}
+		}
+		
+		if (objetivo == null) {
+			System.out.println("No existe un coordinador con ese nombre de usuario.");
+			return;
+		}
+		
+		System.out.println("Nueva contraseña: ");
+		String nuevaPass = sc.nextLine();
+		
+		String nuevaArea = sc.nextLine();
+		
+		objetivo.setPassword(nuevaPass);
+		objetivo.setArea(nuevaArea);
+		
+		System.out.println("Coordinador modificado.");
+	}
+	
+	
+	public void modificarEstudiante(String rutBuscado, Scanner sc) {
+	    Estudiante objetivo = null;
+
+	    for (Estudiante e : estudiantes) {
+	        if (e.getRut().equals(rutBuscado)) {
+	            objetivo = e;
+	            break;
+	        }
+	    }
+
+	    if (objetivo == null) {
+	        System.out.println("No existe estudiante con ese rut.");
+	        return;
+	    }
+
+	    System.out.print("Nuevo nombre: ");
+	    String nombre = sc.nextLine();
+
+	    System.out.print("Nueva carrera: ");
+	    String carrera = sc.nextLine();
+
+	    System.out.print("Nuevo semestre: ");
+	    int semestre = Integer.parseInt(sc.nextLine());
+
+	    System.out.print("Nueva contraseña: ");
+	    String pass = sc.nextLine();
+
+	    objetivo.setNombre(nombre);
+	    objetivo.setCarrera(carrera);
+	    objetivo.setSemestre(semestre);
+	    objetivo.setPassword(pass);
+
+	    guardarUsuarios();
+	    guardarEstudiantes();
+
+	    System.out.println("Estudiante modificado con éxito.");
+	}
+
 	
 	
 	

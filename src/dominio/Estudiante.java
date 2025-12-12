@@ -19,6 +19,18 @@ public class Estudiante extends Usuario {
 		this.correo = correo;
 	}
 
+	public void setNombre(String nombre) {
+		this.nombre = nombre;
+	}
+
+	public void setCarrera(String carrera) {
+		this.carrera = carrera;
+	}
+
+	public void setSemestre(int semestre) {
+		this.semestre = semestre;
+	}
+
 	public String getRut() {
 		return rut;
 	}
