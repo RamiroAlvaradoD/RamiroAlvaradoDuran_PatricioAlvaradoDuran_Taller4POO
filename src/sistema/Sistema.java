@@ -628,10 +628,101 @@ public class Sistema {
 				}
 			}
 		}
-		
-		
 	}
-
+	
+	public void estadisticasInscripcion(String idCertificacion) {
+		
+		int total = 0;
+		int completadas = 0;
+		int enProgreso = 0;
+		int pendientes = 0;
+		
+		for(RegistroCertificacion rc :registros) {
+			if (rc.getId().equals(idCertificacion)) {
+				
+			
+			total++;
+			
+			if (rc.getProgreso() ==100) {
+				completadas++;
+			}else if (rc.getProgreso() > 0) {
+				enProgreso++;
+			}else {
+				pendientes++;
+			}
+		}
+	}
+	
+	if (total == 0) {
+		System.out.println("No hay estudiantes inscritos en esta certificación.");
+		return;
+	}
+	System.out.println("=== ESTADÍSTICAS CERTIFICACIÓN " + idCertificacion + "===");
+	System.out.println("Inscritos totales: " + total);
+	System.out.println("Completadas: " + completadas + " (" + (completadas*100/total) + "%)");
+	System.out.println("En progreso: " + enProgreso + " (" + (enProgreso*100/total) + "%)");
+	System.out.println("Pendientes/Reprobadas: " + pendientes + "(" + (pendientes*100/total) + "%)");
+	System.out.println();
+	}
+	
+	public void analizarAsignaturasCriticas(String idCertificacion) {
+		
+		Certificacion cert = null;
+		
+		for (Certificacion c : certificaciones) {
+			if (c.getId().equals(idCertificacion)) { 
+				cert = c;
+				break;
+			}
+		}
+		if (cert == null) {
+			System.out.println("Certificación no encontrada.");
+			return;
+			
+		}
+		String asignaturaCritica = null;
+		int peorPorcentaje = -1;
+		
+		for (String nrc : cert.getAsigCerts()) {
+			int total = 0;
+			int reprobados = 0;
+			
+			for (Nota n : notas) {
+				if (n.getCodigo().equals(nrc)) {
+					total++;
+					if (!n.isEstado()) {
+						reprobados++;
+					}
+				}
+			}
+			if (total>0) {
+				int porcentaje = (reprobados*100)/total;
+				
+				if (porcentaje > peorPorcentaje) {
+					peorPorcentaje = porcentaje;
+					asignaturaCritica = nrc;
+				}
+			}
+		}
+		if (asignaturaCritica == null) {
+			System.out.println("No hay datos suficientes para análisis.");
+			return;
+		}
+		Curso cursoCritico = null;
+		
+		for (Curso c :cursos) {
+			if (c.getNrc().equals(asignaturaCritica)) {
+				cursoCritico = c;
+				break;
+			}
+		}
+		System.out.println("=== ASIGNATURA MÁS CRITICA ===");
+		System.out.println("NRC: " + asignaturaCritica);
+		if (cursoCritico !=null)
+			System.out.println("Nombre: "+cursoCritico.getNombre());
+		System.out.println("Tasa de reprobación: "+peorPorcentaje + "%");
+		System.out.println();
+	}
 }
 
 
