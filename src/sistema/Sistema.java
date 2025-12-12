@@ -6,6 +6,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Scanner;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
 
 public class Sistema {
 	private static Sistema instancia = null;
@@ -239,12 +241,55 @@ public class Sistema {
 		cargarAsigCerts();
 		cargarNotas();
 		cargarRegistros();
+
+	}
+	
+	
+	//metodos para guardar los cambios de los metodos relacionados a escritura de archivos
+	public void guardarUsuarios() {
 		
-		
-		
-		
+		try {
+			FileWriter fw = new FileWriter("usuarios.txt", false); 
+			
+			for (Usuario u: usuarios) {
+				fw.write(u.getUsername() + ";"
+				+ u.getPassword() + ";" 
+				+ u.getRol() + "\n");
+				
+			}
+			
+			fw.close();
+			
+		} catch (IOException e) {
+			System.out.println("Error al guardar usuarios.txt");
+		}
 		
 	}
+	
+	public void guardarEstudiantes() {
+		
+		try {
+			FileWriter fw = new FileWriter("estudiantes.txt", false);
+			for(Estudiante e: estudiantes) {
+				fw.write(e.getRut() + ";"
+				+ e.getNombre() + ";"
+				+ e.getCarrera() + ";"
+				+ e.getSemestre() + ";"
+				+ e.getCorreo() + ";"
+				+ e.getPassword() + "\n");
+			}
+			
+			fw.close();
+		} catch (IOException e) {
+			System.out.println("Error al guardar estudiantes.txt");
+		}
+		
+	}
+	
+	
+	//crear usuario coordinador
+	
+	
 	
 
 }
