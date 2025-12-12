@@ -8,6 +8,10 @@ import java.util.Scanner;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import strategy.EstrategiaProgreso;
+import strategy.ProgresoSimple;
+import strategy.ProgresoPonderado;
+
 
 public class Sistema {
 	private static Sistema instancia = null;
@@ -29,6 +33,8 @@ public class Sistema {
 	private ArrayList<RegistroCertificacion> registros;
 	private ArrayList<Certificacion> certificaciones;
 	private UsuarioFactory factory;
+	private EstrategiaProgreso estrategia;
+
 
 	private Sistema() {
 		usuarios = new ArrayList<>();
@@ -39,8 +45,18 @@ public class Sistema {
 		certificaciones = new ArrayList<>();
 		
 		factory = new UsuarioFactoryImpl();
+		estrategia = new ProgresoSimple();
 
 	}
+	
+	public void setEstrategia(EstrategiaProgreso e) {
+	    this.estrategia = e;
+	}
+	
+	public int calcularProgresoCertificacion(Estudiante est, Certificacion cert) {
+	    return estrategia.calcularProgreso(est, cert, notas);
+	}
+
 	
 	public void cargarUsuarios() {
 		
