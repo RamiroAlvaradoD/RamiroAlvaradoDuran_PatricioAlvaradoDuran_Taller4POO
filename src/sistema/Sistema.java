@@ -512,6 +512,109 @@ public class Sistema {
 		System.out.println("Contraseña restablecida exitosamente");
 	}
 	
+	
+	public void guardarCertificaciones() {
+		try {
+			FileWriter fw = new FileWriter("certificaciones.txt", false);
+			
+			for (Certificacion c : certificaciones) {
+				fw.write(c.getId() + ";"
+						+ c.getNombre() + ";"
+						+ c.getDescripcion() + ";"
+						+ c.getCreditos() + ";" 
+						+ c.getValidez() + "\n");
+			}
+			
+			fw.close();
+		} catch(IOException e) {
+			System.out.println("Error al guardar certificaciones.txt");
+		}
+	}
+	
+	public void modificarCertificacion(String idBuscado, Scanner sc) {
+		
+		Certificacion objetivo = null;
+		
+		for (Certificacion c : certificaciones) {
+			if (c.getId().equals(idBuscado)) {
+				objetivo = c;
+				break;
+			}
+		}
+		
+		if (objetivo == null) {
+			System.out.println("No se encontró una certificación con ese ID.");
+			return;
+		}
+		
+		System.out.print("Nuevo nombre: ");
+		String nombre = sc.nextLine();
+		
+		System.out.print("Nueva descripcion: ");
+		String descripcion = sc.nextLine();
+		
+		System.out.print("Nueva validez: ");
+		int validez = Integer.parseInt(sc.nextLine());
+		
+		System.out.print("Nuevos créditos: ");
+		int creditos = Integer.parseInt(sc.nextLine());
+		
+//		objetivo.setNombre(nombre);
+//		objetivo.setDescripcion(descripcion);
+//		objetivo.setValidez(validez);
+//		objetivo.setCreditos(creditos);
+		
+		guardarCertificaciones();
+		
+		System.out.println("Certificación modificada exitosamente.");
+	}
+	
+	public void generarCertificados(String idCertificacion) {
+		Certificacion cert = null;
+		
+		for (Certificacion c : certificaciones) {
+			if (c.getId().equals(idCertificacion)) {
+				cert = c;
+				break;
+			}
+		}
+		
+		if (cert == null) {
+			System.out.println("Certificacion no encontrada");
+			return;
+		}
+		
+		for (RegistroCertificacion rc : registros) {
+			if (rc.getId().equals(idCertificacion)) {
+				Estudiante est = null;
+				
+				for (Estudiante e : estudiantes) {
+					if (e.getRut().equals(rc.getRut())) {
+						est = e;
+						break;
+					}
+				}
+				
+				if (est == null) continue; {
+					int progreso = calcularProgresoCertificacion(est,cert);
+					
+					if (progreso == 100) {
+						System.out.println("===================================");
+						System.out.println("     CERTIFICADO DE COMPLECIÓN     ");
+						System.out.println("===================================");
+						System.out.println("Estudiante: " + est.getNombre() + "  (" + est.getRut() + ")");
+						System.out.println("Certificación : " + cert.getNombre());
+						System.out.println("Estado : COMPLETADA");
+						System.out.println("Fecha: " + java.time.LocalDate.now());
+						System.out.println("===================================");
+						System.out.println();
+					}
+				}
+			}
+		}
+		
+		
+	}
 
 }
 
